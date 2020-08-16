@@ -8,6 +8,7 @@ extern crate rlibc;
 use core::panic::PanicInfo;
 
 mod vga_buffer;
+mod serial;
 
 
 /// This replaces the typical main() function.
@@ -22,10 +23,21 @@ pub extern "C" fn _start() -> ! {
 }
 
 
-/// This function is called on panic.
+/// This function is called on panic (in regular mode).
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
+    loop {}
+}
+
+/// This function is called on panic (during tests).
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    serial_println!("[failed]\n");
+    serial_println!("Error: {}\n", info);
+    exit_qemu(QemuExitCode::Failed);
     loop {}
 }
 
@@ -33,7 +45,7 @@ fn panic(info: &PanicInfo) -> ! {
 /// Custom test runner for running unit and integration tests.
 #[cfg(test)]
 fn test_runner(tests: &[&dyn Fn()]) {
-    println!("Running {} tests", tests.len());
+    serial_println!("Running {} tests", tests.len());
     for test in tests {
         test();
     }
@@ -64,7 +76,7 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 
 #[test_case]
 fn trivial_assertion() {
-    print!("trivial assertion... ");
-    assert_eq!(1, 1);
-    println!("[ok]");
+    serial_print!("trivial assertion... ");
+    assert_eq!(0, 1);
+    serial_println!("[ok]");
 }
