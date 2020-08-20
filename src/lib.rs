@@ -10,6 +10,7 @@ use core::panic::PanicInfo;
 pub mod vga_buffer;
 pub mod serial;
 pub mod interrupts;
+pub mod gdt;
 
 /// Trait for test functions.
 pub trait Testable {
@@ -83,5 +84,6 @@ fn panic(info: &PanicInfo) -> ! {
 
 /// Handle initialization logic on startup.
 pub fn init() {
+    gdt::init();
     interrupts::init_idt();
 }
