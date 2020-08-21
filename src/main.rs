@@ -14,17 +14,15 @@ pub extern "C" fn _start() -> ! {
 
     rust_os::init();
 
-    fn stack_overflow() {
-        stack_overflow();
-    }
-
-    stack_overflow();
-
     #[cfg(test)]
     test_main();
 
     println!("It did not crash!");
-    loop {}
+    loop {
+        use rust_os::print;
+        print!("-");
+        for _ in 0..10000 {}
+    }
 }
 
 
