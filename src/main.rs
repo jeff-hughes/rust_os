@@ -18,11 +18,7 @@ pub extern "C" fn _start() -> ! {
     test_main();
 
     println!("It did not crash!");
-    loop {
-        use rust_os::print;
-        print!("-");
-        for _ in 0..10000 {}
-    }
+    rust_os::hlt_loop();
 }
 
 
@@ -31,7 +27,7 @@ pub extern "C" fn _start() -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    rust_os::hlt_loop();
 }
 
 /// This function is called on panic (during tests).
