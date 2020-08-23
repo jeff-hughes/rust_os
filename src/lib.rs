@@ -7,10 +7,16 @@
 extern crate rlibc;
 use core::panic::PanicInfo;
 
+#[cfg(test)]
+use bootloader::{BootInfo, entry_point};
+
+use x86_64::instructions::port::Port;
+
 pub mod vga_buffer;
 pub mod serial;
 pub mod interrupts;
 pub mod gdt;
+pub mod memory;
 
 /// Trait for test functions.
 pub trait Testable {
@@ -40,8 +46,6 @@ pub enum QemuExitCode {
 /// Cargo.toml in the metadata given to the bootloader
 /// crate.
 pub fn exit_qemu(exit_code: QemuExitCode) {
-    use x86_64::instructions::port::Port;
-
     unsafe {
         let mut port = Port::new(0xf4);
         port.write(exit_code as u32);
@@ -66,10 +70,16 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 }
 
 
+// This macro adds a _start() function (which replaces the typical
+// main() function in a `no_std` environment), and ensures that the
+// function passed to it (kernel_main) has the correct argument types,
+// which is otherwise not possible from within Rust.
+#[cfg(test)]
+entry_point!(test_kernel_main);
+
 /// Entry point for `cargo test`
 #[cfg(test)]
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
     init();
     test_main();
     hlt_loop();

@@ -1,11 +1,17 @@
-use x86_64::structures::idt::{
-    InterruptDescriptorTable,
-    InterruptStackFrame,
-    PageFaultErrorCode,
-};
-use pic8259_simple::ChainedPics;
-use spin::Mutex;
 use lazy_static::lazy_static;
+use spin::Mutex;
+
+use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
+use pic8259_simple::ChainedPics;
+use x86_64::{
+    instructions::port::Port,
+    registers::control::Cr2,
+    structures::idt::{
+        InterruptDescriptorTable,
+        InterruptStackFrame,
+        PageFaultErrorCode,
+    },
+};
 
 use crate::{print, println};
 use crate::gdt;
@@ -58,8 +64,6 @@ extern "x86-interrupt" fn page_fault_handler(
     stack_frame: &mut InterruptStackFrame,
     error_code: PageFaultErrorCode,
 ) {
-    use x86_64::registers::control::Cr2;
-
     println!("EXCEPTION: PAGE FAULT");
     println!("Accessed Address: {:?}", Cr2::read());
     println!("Error Code: {:?}", error_code);
@@ -90,9 +94,6 @@ extern "x86-interrupt" fn timer_interrupt_handler(
 extern "x86-interrupt" fn keyboard_interrupt_handler(
     _stack_frame: &mut InterruptStackFrame)
 {
-    use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
-    use x86_64::instructions::port::Port;
-
     lazy_static! {
         static ref KEYBOARD: Mutex<Keyboard<layouts::Us104Key, ScancodeSet1>> =
             Mutex::new(Keyboard::new(layouts::Us104Key, ScancodeSet1,
