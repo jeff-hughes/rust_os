@@ -1,9 +1,10 @@
 #![no_std]
 #![cfg_attr(test, no_main)]
-#![feature(custom_test_frameworks, abi_x86_interrupt)]
+#![feature(abi_x86_interrupt, alloc_error_handler, custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+extern crate alloc;
 extern crate rlibc;
 use core::panic::PanicInfo;
 
@@ -12,11 +13,19 @@ use bootloader::{BootInfo, entry_point};
 
 use x86_64::instructions::port::Port;
 
-pub mod vga_buffer;
-pub mod serial;
-pub mod interrupts;
+pub mod allocator;
 pub mod gdt;
+pub mod interrupts;
 pub mod memory;
+pub mod serial;
+pub mod vga_buffer;
+
+
+#[alloc_error_handler]
+fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
+    panic!("Allocation error: {:?}", layout)
+}
+
 
 /// Trait for test functions.
 pub trait Testable {
