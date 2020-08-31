@@ -1,0 +1,1 @@
+This repo implements the code from [Writing an OS in Rust](https://os.phil-opp.com/), an excellent blog series about how to implement an OS kernel using Rust.
